@@ -1,0 +1,597 @@
+import tkinter as tk
+import pygame
+import random
+import os
+import sys
+
+# =========================================================
+# FIND FILES
+# =========================================================
+
+def resource_path(filename):
+    """
+    Finds files both when running normally with Python
+    and when running as a PyInstaller .exe.
+    """
+
+    if getattr(sys, "frozen", False):
+        base_path = sys._MEIPASS
+    else:
+        base_path = os.path.dirname(os.path.abspath(__file__))
+
+    return os.path.join(base_path, filename)
+
+
+SCARY_FILE = resource_path(
+    "absolutesound-suspense-scary-horror-536648.mp3"
+)
+
+LOVE_FILE = resource_path(
+    "Stephen Sanchez - Until I Found You (Lyrics).mp3"
+)
+
+# =========================================================
+# CHECK MUSIC FILES
+# =========================================================
+
+if not os.path.exists(SCARY_FILE):
+    print("Scary music was not found:")
+    print(SCARY_FILE)
+    input("Press Enter to close...")
+    raise SystemExit
+
+if not os.path.exists(LOVE_FILE):
+    print("Love song was not found:")
+    print(LOVE_FILE)
+    input("Press Enter to close...")
+    raise SystemExit
+
+
+# =========================================================
+# AUDIO
+# =========================================================
+
+pygame.mixer.init()
+
+# =========================================================
+# WINDOW
+# =========================================================
+
+root = tk.Tk()
+
+root.title("SYSTEM WARNING")
+root.geometry("750x520")
+root.resizable(False, False)
+root.configure(bg="black")
+
+canvas = tk.Canvas(
+    root,
+    width=750,
+    height=520,
+    bg="black",
+    highlightthickness=0
+)
+
+canvas.pack()
+
+revealed = False
+
+
+# =========================================================
+# SCARY MUSIC
+# =========================================================
+
+pygame.mixer.music.load(SCARY_FILE)
+pygame.mixer.music.set_volume(0.60)
+
+# -1 = repeat forever
+pygame.mixer.music.play(-1)
+
+
+# =========================================================
+# DARK BORDER
+# =========================================================
+
+canvas.create_rectangle(
+    7,
+    7,
+    743,
+    513,
+    outline="#330000",
+    width=3
+)
+
+canvas.create_text(
+    20,
+    20,
+    anchor="w",
+    text="SYSTEM // SECURE MODE",
+    fill="#550000",
+    font=("Consolas", 9)
+)
+
+
+# =========================================================
+# TERMINAL TEXT
+# =========================================================
+
+terminal_lines = [
+    "INITIALIZING SECURITY PROTOCOL...",
+    "CHECKING SYSTEM MEMORY...",
+    "WARNING: UNKNOWN PROCESS",
+    "ANALYZING PROCESS...",
+    "ACCESS DENIED",
+    "CONNECTION ESTABLISHED",
+    "CRITICAL ERROR"
+]
+
+terminal = canvas.create_text(
+    25,
+    55,
+    anchor="nw",
+    text="",
+    fill="#550000",
+    font=("Consolas", 10)
+)
+
+
+def terminal_animation(index=0):
+
+    if revealed:
+        return
+
+    if index < len(terminal_lines):
+
+        old_text = canvas.itemcget(
+            terminal,
+            "text"
+        )
+
+        canvas.itemconfig(
+            terminal,
+            text=old_text + "\n> " + terminal_lines[index]
+        )
+
+        root.after(
+            random.randint(250, 650),
+            lambda: terminal_animation(index + 1)
+        )
+
+
+terminal_animation()
+
+
+# =========================================================
+# PULSING SKULL
+# =========================================================
+
+skull = canvas.create_text(
+    375,
+    190,
+    text="☠",
+    fill="#cc0000",
+    font=("Arial", 120, "bold")
+)
+
+skull_size = 120
+skull_direction = 1
+
+
+def skull_pulse():
+
+    global skull_size
+    global skull_direction
+
+    if revealed:
+        return
+
+    skull_size += skull_direction * 2
+
+    if skull_size >= 145:
+        skull_direction = -1
+
+    if skull_size <= 115:
+        skull_direction = 1
+
+    canvas.itemconfig(
+        skull,
+        font=("Arial", skull_size, "bold")
+    )
+
+    root.after(
+        45,
+        skull_pulse
+    )
+
+
+# =========================================================
+# MAIN WARNING
+# =========================================================
+
+canvas.create_text(
+    375,
+    315,
+    text="⚠ SYSTEM BREACH DETECTED ⚠",
+    fill="#ff1111",
+    font=("Consolas", 25, "bold")
+)
+
+canvas.create_text(
+    375,
+    350,
+    text="UNKNOWN ENTITY HAS ENTERED THIS SYSTEM",
+    fill="#aa1111",
+    font=("Consolas", 11)
+)
+
+
+# =========================================================
+# RANDOM GLITCH WARNINGS
+# =========================================================
+
+glitch_messages = [
+    "MEMORY CORRUPTION",
+    "UNKNOWN PROCESS",
+    "ACCESS VIOLATION",
+    "SYSTEM FAILURE",
+    "DO NOT CLOSE",
+    "SECURITY OVERRIDE",
+    "CRITICAL WARNING"
+]
+
+
+def glitch():
+
+    if revealed:
+        return
+
+    message = random.choice(
+        glitch_messages
+    )
+
+    x = random.randint(70, 680)
+    y = random.randint(100, 450)
+
+    glitch_text = canvas.create_text(
+        x,
+        y,
+        text=message,
+        fill=random.choice([
+            "#550000",
+            "#770000",
+            "#990000",
+            "#ff0000"
+        ]),
+        font=(
+            "Consolas",
+            random.randint(8, 13),
+            "bold"
+        )
+    )
+
+    root.after(
+        random.randint(150, 500),
+        lambda: canvas.delete(glitch_text)
+    )
+
+    root.after(
+        random.randint(150, 500),
+        glitch
+    )
+
+
+glitch()
+
+
+# =========================================================
+# RANDOM RED FLASH
+# =========================================================
+
+def red_flash():
+
+    if revealed:
+        return
+
+    overlay = canvas.create_rectangle(
+        0,
+        0,
+        750,
+        520,
+        fill="#660000",
+        outline=""
+    )
+
+    root.after(
+        70,
+        lambda: canvas.delete(overlay)
+    )
+
+    root.after(
+        random.randint(1800, 3500),
+        red_flash
+    )
+
+
+root.after(
+    1500,
+    red_flash
+)
+
+
+# =========================================================
+# CLICK MESSAGE
+# =========================================================
+
+canvas.create_text(
+    375,
+    405,
+    text="⚠ CLICK TO CONTINUE ⚠",
+    fill="#ff2222",
+    font=("Consolas", 15, "bold")
+)
+
+
+# =========================================================
+# DRAMATIC FLASH
+# =========================================================
+
+def dramatic_flash():
+
+    flash = canvas.create_rectangle(
+        0,
+        0,
+        750,
+        520,
+        fill="white",
+        outline=""
+    )
+
+    root.after(
+        80,
+        lambda: canvas.itemconfig(
+            flash,
+            fill="#ff0033"
+        )
+    )
+
+    root.after(
+        160,
+        lambda: canvas.itemconfig(
+            flash,
+            fill="black"
+        )
+    )
+
+    root.after(
+        260,
+        lambda: canvas.delete(flash)
+    )
+
+
+# =========================================================
+# PLAY LOVE SONG FROM 0:28
+# =========================================================
+
+def play_love_section():
+
+    if not revealed:
+        return
+
+    pygame.mixer.music.load(
+        LOVE_FILE
+    )
+
+    pygame.mixer.music.set_volume(
+        0.65
+    )
+
+    # Start at 28 seconds
+    pygame.mixer.music.play(
+        loops=0,
+        start=28
+    )
+
+    # 1:02 - 0:28 = 34 seconds
+    # Restart the same section after 34 seconds
+    root.after(
+        34000,
+        play_love_section
+    )
+
+
+# =========================================================
+# ROMANTIC REVEAL
+# =========================================================
+
+def reveal():
+
+    global revealed
+
+    if revealed:
+        return
+
+    revealed = True
+
+    # Stop scary music
+    pygame.mixer.music.stop()
+
+    # Dramatic transition
+    dramatic_flash()
+
+    # Remove horror screen
+    canvas.delete("all")
+
+    # Change background
+    canvas.configure(
+        bg="#ffd9e8"
+    )
+
+    # Start romantic song
+    play_love_section()
+
+    # =====================================================
+    # ROMANTIC TEXT
+    # =====================================================
+
+    canvas.create_text(
+        375,
+        95,
+        text="💗",
+        font=("Arial", 90)
+    )
+
+    canvas.create_text(
+        375,
+        200,
+        text="😭 GOT YOU 💀",
+        fill="#d63384",
+        font=("Arial", 30, "bold")
+    )
+
+    canvas.create_text(
+        375,
+        250,
+        text="It's just a prank 😂",
+        fill="#333333",
+        font=("Arial", 18, "bold")
+    )
+
+    canvas.create_text(
+        375,
+        290,
+        text="Nothing happened to your computer.",
+        fill="#333333",
+        font=("Arial", 14)
+    )
+
+    canvas.create_text(
+        375,
+        340,
+        text="Get well soon ❤️‍🩹",
+        fill="#d63384",
+        font=("Arial", 22, "bold")
+    )
+
+    canvas.create_text(
+        375,
+        380,
+        text="I love you ❤️",
+        fill="#d63384",
+        font=("Arial", 22, "bold")
+    )
+
+    canvas.create_text(
+        375,
+        420,
+        text="Stay safe hehe 🥹",
+        fill="#444444",
+        font=("Arial", 14)
+    )
+
+    # Start floating hearts
+    spawn_heart()
+
+
+# =========================================================
+# BUTTON
+# =========================================================
+
+button = tk.Button(
+    root,
+    text="CLICK TO CONTINUE",
+    command=reveal,
+    bg="#660000",
+    fg="white",
+    activebackground="#ff0000",
+    activeforeground="white",
+    font=("Consolas", 13, "bold"),
+    relief="flat",
+    padx=25,
+    pady=10
+)
+
+button.place(
+    x=285,
+    y=450
+)
+
+
+# =========================================================
+# FLOATING HEARTS
+# =========================================================
+
+def spawn_heart():
+
+    if not revealed:
+        return
+
+    x = random.randint(
+        20,
+        730
+    )
+
+    heart = canvas.create_text(
+        x,
+        520,
+        text=random.choice([
+            "💗",
+            "💕",
+            "💖",
+            "💘",
+            "❤️"
+        ]),
+        font=(
+            "Arial",
+            random.randint(15, 28)
+        )
+    )
+
+    def move(y=520):
+
+        if y < -30:
+            canvas.delete(heart)
+            return
+
+        canvas.move(
+            heart,
+            0,
+            -2
+        )
+
+        root.after(
+            25,
+            lambda: move(y - 2)
+        )
+
+    move()
+
+    root.after(
+        random.randint(150, 450),
+        spawn_heart
+    )
+
+
+# =========================================================
+# CLEAN CLOSE
+# =========================================================
+
+def close_app():
+
+    pygame.mixer.music.stop()
+    pygame.mixer.quit()
+    root.destroy()
+
+
+root.protocol(
+    "WM_DELETE_WINDOW",
+    close_app
+)
+
+
+# =========================================================
+# START ANIMATIONS
+# =========================================================
+
+skull_pulse()
+
+root.mainloop()
